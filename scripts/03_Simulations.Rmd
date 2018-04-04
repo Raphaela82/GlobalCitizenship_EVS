@@ -1,0 +1,476 @@
+---
+title: "R Notebook"
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+
+Here is a test
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+
+```{r echo=TRUE}
+rm(list=ls(all=TRUE))
+library('qgraph')
+library('IsingFit')
+library('bootnet')
+library('igraph')
+
+```
+
+```{r}
+
+load("Networkdata.Rdata")
+
+Simulationfit<- IsingFit (na.omit (Networkdata))
+
+Simulationfit$weiadj
+Simulationfit$thresholds
+Simulationgraph<-qgraph(Simulationfit$weiadj, layout="spring", cut=.8) 
+
+#cluster_walktrap
+SimulationiGraph<-graph_from_adjacency_matrix(abs(Simulationfit$weiadj),'undirected', weighted=TRUE, add.colnames=FALSE)
+
+SimulationfitCom<-cluster_walktrap(SimulationiGraph)
+
+communities(SimulationfitCom)
+qgraph(Simulationfit$weiadj, layout="spring", cut=.8, groups=communities(SimulationfitCom), legend=FALSE)
+
+
+#Centrality ANalysis
+
+SimulationCentrality<-centralityTable(Simulationgraph, standardized=FALSE)
+centralityPlot(Simulationgraph, scale="raw")
+
+
+
+```
+
+
+
+```{r}
+####Simulations
+
+library(Rcpp)
+library(IsingSampler)
+
+############################
+#Simulation Input
+SimInput <- LinTransform(Simulationfit$weiadj, Simulationfit$thresholds)#The LinTransform function rescales the edge weights and thresholds, so that a threshold of 0 indicates that a node has no disposition to be in a given state and a positive (negative) threshold indicates that a node has the disposition to be "on" ("off")
+
+
+#########################
+#Centrality simulation with all nodes
+
+set.seed (1)
+
+
+######samples with single nodes positive disposition
+SampleNeg <- IsingSampler(3000, SimInput$graph, 
+                          rep(-.1,33),#this argument specifies the thresholds, which are all set to -.1 
+                          responses = c(-1L,1L))
+
+SampleJ <- IsingSampler(3000, SimInput$graph, 
+                          c(rep(-.1,21),#this sets the thesholds of the first 21 nodes to -.1
+                            1,#this sets the threshold of the 22st node, which is the node J, to 1
+                            rep(-.1,11)),#this sets the thesholds of the last 11 nodes to -.1
+                          responses = c(-1L,1L))
+
+#SampleD1 <- IsingSampler (3000, SimInput$graph, c(rep(-.1,7),#this sets the thesholds of the first 7 nodes to -.1
+                                                   1,#this sets the threshold of the 8th node, which is the node D1, to 1
+                                                   rep(-.1,25)),#this sets the thesholds of the last 25 nodes to -.1
+                           responses = c(-1L,1L))
+
+
+#SampleQ <- IsingSampler (3000, SimInput$graph, c(rep(-.1,29),#this sets the thesholds of the first 29 nodes to -.1
+                                                   1,#this sets the threshold of the 30th node, which is the node Q, to 1
+                                                   rep(-.1,3)),#this sets the thesholds of the last 3 nodes to -.1
+                           responses = c(-1L,1L))
+
+#SampleK <- IsingSampler (3000, SimInput$graph, c(rep(-.1,22),#this sets the thesholds of the first 22 nodes to -.1
+                                                   1,#this sets the threshold of the 23nd node, which is the node K, to 1
+                                                   rep(-.1,10)),#this sets the thesholds of the last 10 nodes to -.1
+                           responses = c(-1L,1L))
+
+SampleN1 <- IsingSampler (3000, SimInput$graph, c(rep(-.1,25),#this sets the thesholds of the first 25 nodes to -.1
+                                                   1,#this sets the threshold of the 26th node, which is the node O1, to 1
+                                                   rep(-.1,7)),#this sets the thesholds of the last 7 nodes to -.1
+                           responses = c(-1L,1L))
+
+
+#SampleE <- IsingSampler (3000, SimInput$graph, c(rep(-.1,12),#this sets the thesholds of the first 12 nodes to -.1
+                                                   1,#this sets the threshold of the 13th node, which is the node E, to 1
+                                                   rep(-.1,20)),#this sets the thesholds of the last20 nodes to -.1
+                           responses = c(-1L,1L))
+
+
+#SampleA1 <- IsingSampler (3000, SimInput$graph, c(rep(1,1),#this sets the thesholds of the first  nodes which is A1 to 1
+                                                   -.1,#this sets the threshold of the 2nd node,  to -.1
+                                                   rep(-.1,31)),#this sets the thesholds of all remaining nodes to -.1
+                           responses = c(-1L,1L))
+
+#SampleA2 <- IsingSampler (3000, SimInput$graph, c(rep(-.1,1),#this sets the thesholds of the first node to -.1
+                                                   1,#this sets the threshold of the 2nd node, which is the node A2, to 1
+                                                   rep(-.1,31)),#this sets the thesholds of the last22 nodes to -.1
+                           responses = c(-1L,1L))
+
+
+#SampleA3 <- IsingSampler (3000, SimInput$graph, c(rep(-.1,2),#this sets the thesholds of the first 2 nodes to -.1
+                                                   1,#this sets the threshold of the 3rd node, which is the node A3, to 1
+                                                   rep(-.1,30)),#this sets the thesholds of the last 31 nodes to -.1
+                           responses = c(-1L,1L))
+
+
+#SampleB <- IsingSampler (3000, SimInput$graph, c(rep(-.1,3),
+                                                   1,
+                                                   rep(-.1,29)),
+                           responses = c(-1L,1L))
+
+#SampleC1 <- IsingSampler (3000, SimInput$graph, c(rep(-.1,4),
+                                                   1,
+                                                   rep(-.1,28)),
+                           responses = c(-1L,1L))
+
+#SampleC2 <- IsingSampler (3000, SimInput$graph, c(rep(-.1,5),
+                                                   1,
+                                                   rep(-.1,27)),
+                           responses = c(-1L,1L))
+
+#SampleC3 <- IsingSampler (3000, SimInput$graph, c(rep(-.1,6),
+                                                   1,
+                                                   rep(-.1,26)),
+                           responses = c(-1L,1L))
+
+#SampleD2 <- IsingSampler (3000, SimInput$graph, c(rep(-.1,8),
+                                                   1,
+                                                   rep(-.1,24)),
+                           responses = c(-1L,1L))
+
+#SampleD3 <- IsingSampler (3000, SimInput$graph, c(rep(-.1,9),
+                                                   1,
+                                                   rep(-.1,23)),
+                           responses = c(-1L,1L))
+
+#SampleD4 <- IsingSampler (3000, SimInput$graph, c(rep(-.1,10),
+                                                   1,
+                                                   rep(-.1,22)),
+                           responses = c(-1L,1L))
+
+#SampleD5 <- IsingSampler (3000, SimInput$graph, c(rep(-.1,11),
+                                                   1,
+                                                   rep(-.1,21)),
+                           responses = c(-1L,1L))
+
+#SampleF <- IsingSampler (3000, SimInput$graph, c(rep(-.1,13),
+                                                   1,
+                                                   rep(-.1,19)),
+                           responses = c(-1L,1L))
+
+#SampleG <- IsingSampler (3000, SimInput$graph, c(rep(-.1,14),
+                                                   1,
+                                                   rep(-.1,18)),
+                           responses = c(-1L,1L))
+
+
+SampleH1 <- IsingSampler (3000, SimInput$graph, c(rep(-.1,15),
+                                                   1,
+                                                   rep(-.1,17)),
+                           responses = c(-1L,1L))
+
+
+
+#SampleH2 <- IsingSampler (3000, SimInput$graph, c(rep(-.1,16),
+                                                   1,
+                                                   rep(-.1,16)),
+                           responses = c(-1L,1L))
+
+
+#SampleH3 <- IsingSampler (3000, SimInput$graph, c(rep(-.1,17),
+                                                   1,
+                                                   rep(-.1,15)),
+                           responses = c(-1L,1L))
+
+
+
+#SampleH4 <- IsingSampler (3000, SimInput$graph, c(rep(-.1,18),
+                                                   1,
+                                                   rep(-.1,14)),
+                           responses = c(-1L,1L))
+
+
+
+#SampleH5 <- IsingSampler (3000, SimInput$graph, c(rep(-.1,19),
+                                                   1,
+                                                   rep(-.1,13)),
+                           responses = c(-1L,1L))
+
+SampleI <- IsingSampler (3000, SimInput$graph, c(rep(-.1,20),
+                                                   1,
+                                                   rep(-.1,12)),
+                           responses = c(-1L,1L))
+
+
+
+#SampleL <- IsingSampler (3000, SimInput$graph, c(rep(-.1,23),
+                                                   1,
+                                                   rep(-.1,9)),
+                           responses = c(-1L,1L))
+
+
+
+#SampleM <- IsingSampler (3000, SimInput$graph, c(rep(-.1,24),
+                                                   1,
+                                                   rep(-.1,8)),
+                           responses = c(-1L,1L))
+
+
+#SampleN2 <- IsingSampler (3000, SimInput$graph, c(rep(-.1,26),
+                                                   1,
+                                                   rep(-.1,6)),
+                           responses = c(-1L,1L))
+
+#SampleO <- IsingSampler (3000, SimInput$graph, c(rep(-.1,27),
+                                                   1,
+                                                   rep(-.1,5)),
+                           responses = c(-1L,1L))
+
+
+SampleP <- IsingSampler (3000, SimInput$graph, c(rep(-.1,28),
+                                                   1,
+                                                   rep(-.1,4)),
+                           responses = c(-1L,1L))
+
+#SampleR <- IsingSampler (3000, SimInput$graph, c(rep(-.1,30),
+                                                   1,
+                                                   rep(-.1,2)),
+                           responses = c(-1L,1L))
+
+#SampleS <- IsingSampler (3000, SimInput$graph, c(rep(-.1,31),
+                                                   1,
+                                                   rep(-.1,1)),
+                           responses = c(-1L,1L))
+
+
+#SampleT <- IsingSampler (3000, SimInput$graph, c(rep(-.1,32),
+                                                   -.1,
+                                                   rep(1,1)),
+                           responses = c(-1L,1L))
+
+#allsamples <- rbind(SampleA1,SampleA2,SampleA3,SampleB,SampleC1,SampleC2,SampleC3,SampleD1,SampleD2,SampleD3,SampleD4,SampleD5,SampleE,SampleF,SampleG,SampleH1,SampleH2,SampleH3,SampleH4,SampleH5,SampleI,SampleJ,SampleK,SampleL,SampleM,SampleN1,SampleN2,SampleO,SampleP,SampleQ,SampleR,SampleS,SampleT,SampleNeg)
+
+allsamples <- rbind(SampleH1,SampleI,SampleJ,SampleP,SampleN1,SampleNeg)
+
+
+#rowname <- rep(c('SampleA1','SampleA2','SampleA3','SampleB','SampleC1','SampleC2','SampleC3','SampleD1','SampleD2','SampleD3','SampleD4','SampleD5','SampleE','SampleF','SampleG','SampleH1','SampleH2','SampleH3','SampleH4','SampleH5','SampleI','SampleJ','SampleK','SampleL','SampleM','SampleN1','SampleN2','SampleO','SampleP','SampleQ','SampleR','SampleS','SampleT','SampleNeg'), each=3000)
+
+rowname <- rep(c('Persuation attempt on node H1','Persuation attempt on node I','Persuation attempt on node J','Persuation attempt on node P','Persuation attempt on node N1','All nodes have a negative disposition'), each=3000)
+
+row.names(allsamples) <- rowname
+
+
+
+######calculate the sum scores of the different networks
+
+
+sumSampleall<-apply(allsamples, 1, sum)  
+sumscores<- data.frame(sumSampleall,rowname)
+head (sumscores)
+
+
+meansumscores<-aggregate(sumscores$sumSampleall, by=list(sumscores$rowname), mean)
+sdsumscores<-aggregate(sumscores$sumSampleall, by=list(sumscores$rowname), sd)
+
+graphicsumscores<- data.frame(meansumscores,sdsumscores )
+
+####calculate confidence intervals for sumscore means
+m<-graphicsumscores$x
+s<-graphicsumscores$x.1
+u<-m+1.96*s/sqrt(3000)
+l<-m-1.96*s/sqrt(3000)
+
+confi<- cbind(graphicsumscores, m, u, l)
+names<-confi$Group.1
+graph<-data.frame(confi,names)
+
+graph$names <- factor(graph$names, levels = graph$names[order(graph$m)])
+graph$names
+
+#####forestplot for the means of sumscores
+library(forestplot)
+library (ggplot2)
+credplot.gg <- function(graph){
+ # graph is a data frame 
+ # graph$x gives variable names
+ # graph$y gives mean
+ # graph$l gives lower limits
+ # graph$u gives upper limits
+ require(ggplot2)
+ p <- ggplot(graph, aes(x=names, y=m, ymin=l, ymax=u))+
+ geom_pointrange()+
+ geom_hline(yintercept = -10.617714, linetype=2)+
+ coord_flip()+
+ xlab('')+
+   theme(axis.title.x=element_blank())
+ return(p)
+}
+
+credplot.gg(graph)
+
+
+
+#perform t-test on the sum scores of the different networks
+meansumscores<-aggregate(sumscores$sumSampleall, by=list(sumscores$rowname), mean)
+sdsumscores<-aggregate(sumscores$sumSampleall, by=list(sumscores$rowname), sd)
+
+graphicsumscores<- data.frame(meansumscores,sdsumscores )
+
+t.test(sumscores$sumSampleall, sumscores$sumSampleall, by=list(sumscores$rowname),var.equal = TRUE)
+
+t.test(sumSampleNeg, sumSampleJ, var.equal = TRUE)#significantly different
+t.test(sumSampleNeg, sumSampleD1, var.equal = TRUE)#significantly different
+t.test(sumSampleNeg, sumSampleQ, var.equal = TRUE)#significantly different
+t.test(sumSampleNeg, sumSampleK, var.equal = TRUE)#significantly different
+t.test(sumSampleNeg, sumSampleO1, var.equal = TRUE)#significantly different
+t.test(sumSampleNeg, sumSampleE, var.equal = TRUE)#significantly different
+t.test(sumSampleNeg, sumSampleA1, var.equal = TRUE)#significantly different
+t.test(sumSampleNeg, sumSampleA2, var.equal = TRUE)#significantly different
+t.test(sumSampleNeg, sumSampleA3, var.equal = TRUE)#significantly different
+t.test(sumSampleNeg, sumSampleB, var.equal = TRUE)#significantly different
+t.test(sumSampleNeg, sumSampleC1, var.equal = TRUE)#significantly different
+t.test(sumSampleNeg, sumSampleC2, var.equal = TRUE)#significantly different
+t.test(sumSampleNeg, sumSampleC3, var.equal = TRUE)
+t.test(sumSampleNeg, sumSampleD2, var.equal = TRUE)
+t.test(sumSampleNeg, sumSampleD3, var.equal = TRUE)
+t.test(sumSampleNeg, sumSampleD4, var.equal = TRUE)
+t.test(sumSampleNeg, sumSampleF, var.equal = TRUE)
+t.test(sumSampleNeg, sumSampleG, var.equal = TRUE)
+t.test(sumSampleNeg, sumSampleH, var.equal = TRUE)
+t.test(sumSampleNeg, sumSampleI1, var.equal = TRUE)
+t.test(sumSampleNeg, sumSampleI2, var.equal = TRUE)
+t.test(sumSampleNeg, sumSampleI3, var.equal = TRUE)
+t.test(sumSampleNeg, sumSampleI4, var.equal = TRUE)
+t.test(sumSampleNeg, sumSampleI5, var.equal = TRUE)
+t.test(sumSampleNeg, sumSampleL, var.equal = TRUE)
+t.test(sumSampleNeg, sumSampleM, var.equal = TRUE)
+t.test(sumSampleNeg, sumSampleN, var.equal = TRUE)
+t.test(sumSampleNeg, sumSampleO2, var.equal = TRUE)
+t.test(sumSampleNeg, sumSampleP, var.equal = TRUE)
+t.test(sumSampleNeg, sumSampleR, var.equal = TRUE)
+t.test(sumSampleNeg, sumSampleT, var.equal = TRUE)
+t.test(sumSampleNeg, sumSampleU, var.equal = TRUE)
+t.test(sumSampleNeg, sumSampleV, var.equal = TRUE)
+t.test(sumSampleNeg, sumSampleX, var.equal = TRUE)
+
+
+
+
+
+t.test(sumSampleJ, sumSampleD3, var.equal = TRUE)
+
+
+
+#calculate the effect size of the difference in the sum scores
+library(compute.es)
+mes(mean(sumSampleJ), mean(sumSampleD), sd(sumSampleJ), sd(sumSampleD), 1000, 1000)
+
+mes(mean(sumSampleNeg), mean(sumSampleD1), sd(sumSampleNeg), sd(sumSampleD1), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleJ), sd(sumSampleNeg), sd(sumSampleJ), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleQ), sd(sumSampleNeg), sd(sumSampleQ), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleK), sd(sumSampleNeg), sd(sumSampleK), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleO1), sd(sumSampleNeg), sd(sumSampleO1), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleE), sd(sumSampleNeg), sd(sumSampleE), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleA1), sd(sumSampleNeg), sd(sumSampleA1), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleA2), sd(sumSampleNeg), sd(sumSampleA2), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleA3), sd(sumSampleNeg), sd(sumSampleA3), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleB), sd(sumSampleNeg), sd(sumSampleB), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleC1), sd(sumSampleNeg), sd(sumSampleC1), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleC2), sd(sumSampleNeg), sd(sumSampleC2), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleC3), sd(sumSampleNeg), sd(sumSampleC3), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleD2), sd(sumSampleNeg), sd(sumSampleD2), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleD3), sd(sumSampleNeg), sd(sumSampleD3), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleD4), sd(sumSampleNeg), sd(sumSampleD4), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleF), sd(sumSampleNeg), sd(sumSampleF), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleG), sd(sumSampleNeg), sd(sumSampleG), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleH), sd(sumSampleNeg), sd(sumSampleH), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleI1), sd(sumSampleNeg), sd(sumSampleI1), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleI2), sd(sumSampleNeg), sd(sumSampleI2), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleI3), sd(sumSampleNeg), sd(sumSampleI3), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleI4), sd(sumSampleNeg), sd(sumSampleI4), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleI5), sd(sumSampleNeg), sd(sumSampleI5), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleL), sd(sumSampleNeg), sd(sumSampleL), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleM), sd(sumSampleNeg), sd(sumSampleM), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleN), sd(sumSampleNeg), sd(sumSampleN), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleO2), sd(sumSampleNeg), sd(sumSampleO2), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleP), sd(sumSampleNeg), sd(sumSampleP), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleR), sd(sumSampleNeg), sd(sumSampleR), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleT), sd(sumSampleNeg), sd(sumSampleT), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleU), sd(sumSampleNeg), sd(sumSampleU), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleV), sd(sumSampleNeg), sd(sumSampleV), 1000, 1000)
+mes(mean(sumSampleNeg), mean(sumSampleX), sd(sumSampleNeg), sd(sumSampleX), 1000, 1000)
+
+######ggplot for effect sizes
+
+
+effectsizes <- 
+  structure(list(
+    names= c("D1: empathy with Europeans","J: no strong general patriotism","Q: no ancestry based citizenship identity","K: no job priority for people of the country","O1: confidence in the European Union","E: people are not living in need because thet are lazy","A1: do not mind people of different race as neighbors","A2: do not mind muslims as neighbors","A3: do not mind immigrants as neighbors","B: there are not too many immigrants","C1: expect environmental catastroiphe","C2: nature is not strong enough to cope with industrial pollution","C3: humans will not insure that earth remains fit","D2: empathy with humankind","D3: empathy with countrymen","D4: empathy with people in the neighborhood","F: not a member in any social group","G: there is not only one true religion","H: politicians who do not believe in god are not unfit for office","I1: weak confidence in the armed forces","I2: confidence in education system","I3: confidence in the police","I4: confidence in the national parliament","I5: confidence in the national government","L: approval of open borders","M: immigrants are not a strain on the welfare system","N: immigrants do not take away jobs","O2: confidence in the United Nations","P: suprantaional social group identity","R: immigrants are not undermining the national culture","T: immigrants do not increase crime","U: immigrantrs are not a threat to society","V: No fear that EU induces loss of national idenity","X: empathy with immigrants"), 
+    mean  = c(0.41,0.29,0.18,0.19,0.3,0.08,0.05,0.07,0.03,0.26,0.02,0.16,0.12,0.28,0.4,0.36,0.09,0.24,0.08,0.31,0.3, 0.27,0.39,0.31,0.03,0.32,0.21,0.26,0.15,0.27,0.22,0.22,0.18,0.21),
+    lower = c(0.32,0.21,0.09,0.1,0.21,0,-0.04,-0.01,-0.06,0.17,-0.07,0.07,0.03,0.19,0.31,0.28,0,0.15,0.17,0.22,0.21,0.19,0.3,0.22,-0.12,0.24,0.12,0.18,0.07,0.19,0.13,0.13,0.1,0.13),
+    upper = c(0.5,0.38,0.27,0.28,0.39,0.17,0.14,0.16,0.11,0.35,0.11,0.25,0.21,0.37,0.49,0.45,0.18,0.33,0,0.4,0.39,0.36,0.48,0.4,0.06,0.41,0.3,0.35,0.24,0.36,0.31,0.3,0.27,0.3)),
+    .Names = c("names","mean", "lower","upper"), 
+    row.names = c("D1","J","Q","K","O1","E","A1","A2","A3","B","C1","C2","C3","D2","D3","D4","F","G","H","I1","I2","I3","I4","I5","L","M","N","O2","P","R","T","U","V","X"), 
+    class = "data.frame")
+
+
+
+effectsizes$names <- factor(effectsizes$names, levels = effectsizes$names[order(effectsizes$mean)])
+effectsizes$names
+
+library (ggplot2)
+credplot.gg <- function(effectsizes){
+ # d is a data frame with 4 columns
+ # d$x gives variable names
+ # d$y gives center point
+ # d$ylo gives lower limits
+ # d$yhi gives upper limits
+ require(ggplot2)
+ p <- ggplot(effectsizes, aes(x=names, y=mean, ymin=lower, ymax=upper))+
+ geom_pointrange()+
+ geom_hline(yintercept = 0, linetype=2)+
+ coord_flip()+
+ xlab('')+
+   theme(axis.title.x=element_blank())
+ return(p)
+}
+
+credplot.gg(effectsizes)
+
+
+
+### The biggest effect sizes have:
+#D1 empathy europeans
+#D3 empathy with countrymeb
+#I4 confidence in the parliament
+#D4 empathy with neighborhood
+#M immigrants ae NO strain on welfare
+#I5 confidence in the govwernment
+#I1 NO confidence in the armed forces
+#I2 confidence in the education system
+#O1 confidence in the eu
+#J no strong general patriotism
+
+####No effect:
+#C1 environmental awareness
+#A3 diversity immigrants
+#L open borders
+#A1 diversity race
+#A2 diversity muslims
+#E people are NOT living in need because they are lazy
+#H politicians who are not believing in good are NOT unfit for office
+#F not a member in any sopcial organization
+
+
+
+

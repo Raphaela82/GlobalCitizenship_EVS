@@ -1,0 +1,1545 @@
+---
+title: "R Notebook"
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+
+Here is a test
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+
+```{r echo=TRUE}
+#Beginn the script on analysing socio-demographic determinants of global citizenship attitudes network
+rm(list=ls(all=TRUE))
+
+
+```
+
+```{r}
+#open & save original data European value Study 2008
+#codebook source: codebook: https://dbk.gesis.org/dbksearch/file.asp?file=ZA4800_cdb.pdf
+library(foreign)
+
+EVS2008 = read.spss("/Users/schmaelz/Documents/Publications/GlobalCitizenshipBelief network/EVSonly/EVS2008ZA4800_v4-0-0.sav", to.data.frame=TRUE)
+
+#Subset European Countries
+attach(EVS2008)
+EVSsoc<- subset(EVS2008, country == "Austria" | country =="Belgium"| country =="Czech Republic" | country =="Denmark"| country =="Estonia"| country =="Finland"| country =="France"| country =="Germany"| country =="Greece"| country =="Hungary"| country =="Iceland"| country =="Ireland"| country =="Italy"| country =="Latvia"| country =="Luxembourg"| country =="Netherlands"| country =="Norway"| country =="Poland"| country =="Portugal"| country =="Slovak Republic"| country =="Slovenia"| country =="Spain"| country =="Sweden"| country =="Switzerland"| country =="Turkey"| country =="Great Britain"| country =="Northern Ireland")
+
+rm(EVS2008)
+save(EVSsoc,file="/Users/schmaelz/Documents/GITHUB/CitizenshipNetworks/data/EVSsoc.Rdata")
+attach(EVSsoc)
+
+```
+
+```{r}
+#building new variables for relevant socio-dempgraophic factors 
+
+#highest education status postsecondary
+
+table(EVSsoc$v336)
+EVSsoc$edu<-as.numeric(EVSsoc$v336)
+table(EVSsoc$edu)
+
+
+#urban versus rural living
+EVSsoc$urban<-as.numeric(EVSsoc$v370a)
+table(EVSsoc$urban)
+
+
+###age
+
+EVSsoc$age<-as.numeric(EVSsoc$age_r2)
+table(EVSsoc$age)
+
+EVSsoc$young<-as.numeric(EVSsoc$age_r2)
+table(EVSsoc$young)
+EVSsoc$middle<-as.numeric(EVSsoc$age_r2)
+table(EVSsoc$middle)
+EVSsoc$old<-as.numeric(EVSsoc$age_r2)
+table(EVSsoc$old)
+
+####income
+
+EVSsoc$low<-as.numeric(EVSsoc$v353_r)
+table(EVSsoc$low)
+
+EVSsoc$midincome<-as.numeric(EVSsoc$v353_r)
+table(EVSsoc$midincome)
+
+EVSsoc$high<-as.numeric(EVSsoc$v353_r)
+table(EVSsoc$high)
+
+
+####gender
+EVSsoc$gender<-as.numeric(EVSsoc$v302)
+table(EVSsoc$gender)
+
+###immigraant status
+EVSsoc$v309new<-as.numeric(EVSsoc$v309)
+EVSsoc$v311new<-as.numeric(EVSsoc$v311)
+EVSsoc$v306new<-as.numeric(EVSsoc$v306)
+EVSsoc$v342new<-as.numeric(EVSsoc$v342)
+
+```
+
+```{r}
+#recoding these new socio-demographic variables into binary:
+
+attach(EVSsoc)
+
+library(memisc)
+EVSsoc$edu=cases(
+"8"= EVSsoc$edu==1 | EVSsoc$edu==2 | EVSsoc$edu==3 | EVSsoc$edu==4,
+"9"= EVSsoc$edu==5 | EVSsoc$edu==6 | EVSsoc$edu==7 )
+table(EVSsoc$edu)
+
+library(memisc)
+EVSsoc$edu=cases(
+"1"= EVSsoc$edu==9,
+"0"= EVSsoc$edu==8 )
+table(EVSsoc$edu)
+
+library(memisc)
+EVSsoc$urban=cases(
+"8"= EVSsoc$urban==1 | EVSsoc$urban==2,
+"9"= EVSsoc$urban==3 | EVSsoc$urban==4 | EVSsoc$urban==5 )
+table(EVSsoc$urban)
+
+
+library(memisc)
+EVSsoc$urban=cases(
+"1"= EVSsoc$urban==9,
+"0"= EVSsoc$urban==8 )
+table(EVSsoc$urban)
+
+
+library(memisc)
+EVSsoc$old=cases(
+"8"= EVSsoc$old==1| EVSsoc$old==2 ,
+"9"= EVSsoc$old==3 )
+table(EVSsoc$old)
+
+library(memisc)
+EVSsoc$old=cases(
+"1"= EVSsoc$old==9,
+"0"= EVSsoc$old==8 )
+table(EVSsoc$old)
+
+library(memisc)
+EVSsoc$young=cases(
+"8"= EVSsoc$young==2 | EVSsoc$young==3,
+"9"= EVSsoc$young==1 )
+table(EVSsoc$young)
+
+library(memisc)
+EVSsoc$young=cases(
+"1"= EVSsoc$young==9,
+"0"= EVSsoc$young==8 )
+table(EVSsoc$young)
+
+library(memisc)
+EVSsoc$middle=cases(
+"8"= EVSsoc$middle==1 | EVSsoc$middle==3,
+"9"= EVSsoc$middle==2 )
+table(EVSsoc$middle)
+
+library(memisc)
+EVSsoc$middle=cases(
+"1"= EVSsoc$middle==9,
+"0"= EVSsoc$middle==8 )
+table(EVSsoc$middle)
+
+
+library(memisc)
+EVSsoc$low=cases(
+"8"= EVSsoc$low==2 | EVSsoc$low==3,
+"9"= EVSsoc$low==1)
+table(EVSsoc$low)
+
+
+library(memisc)
+EVSsoc$low=cases(
+"1"= EVSsoc$low==9,
+"0"= EVSsoc$low==8 )
+table(EVSsoc$low)
+
+
+
+library(memisc)
+EVSsoc$midincome=cases(
+"8"= EVSsoc$midincome==1 | EVSsoc$midincome==3,
+"9"= EVSsoc$midincome==2)
+table(EVSsoc$midincome)
+
+
+library(memisc)
+EVSsoc$midincome=cases(
+"1"= EVSsoc$midincome==9,
+"0"= EVSsoc$midincome==8 )
+table(EVSsoc$midincome)
+
+
+
+library(memisc)
+EVSsoc$high=cases(
+"8"= EVSsoc$high==1 | EVSsoc$high==2,
+"9"= EVSsoc$high==3)
+table(EVSsoc$high)
+
+
+library(memisc)
+EVSsoc$high=cases(
+"1"= EVSsoc$high==9,
+"0"= EVSsoc$high==8 )
+table(EVSsoc$high)
+
+
+library(memisc)
+EVSsoc$gender=cases(
+"8"= EVSsoc$gender==1,
+"9"= EVSsoc$gender==2)
+table(EVSsoc$gender)
+
+library(memisc)
+EVSsoc$gender=cases(
+"1"= EVSsoc$gender==9,
+"0"= EVSsoc$gender==8 )
+table(EVSsoc$gender)
+
+
+set.seed
+EVSsoc$imm<-ifelse(EVSsoc$v309new==2 |EVSsoc$v311new==2|EVSsoc$v306new==2|v342new==2,9,8)
+
+library(memisc)
+EVSsoc$imm=cases(
+"1"= EVSsoc$imm==9,
+"0"= EVSsoc$imm==8 )
+table(EVSsoc$imm)
+
+
+attach(EVSsoc)
+
+
+```
+
+```{r}
+#####Building a data frame with socio-demographic factors only
+Networksoc<-data.frame(edu,young, old, middle, low, midincome, high,gender,imm,urban)
+attach(Networksoc)
+
+###make them numeric
+Networksoc$edu<-	as.numeric(as.character(	Networksoc$edu	))
+Networksoc$low<-	as.numeric(as.character(	Networksoc$low	))
+Networksoc$midincome<-	as.numeric(as.character(	Networksoc$midincome	))
+Networksoc$high<-	as.numeric(as.character(	Networksoc$high	))
+
+Networksoc$young<-	as.numeric(as.character(	Networksoc$young	))
+Networksoc$middle<-	as.numeric(as.character(	Networksoc$middle	))
+Networksoc$old<-	as.numeric(as.character(	Networksoc$old	))
+
+Networksoc$gender<-	as.numeric(as.character(	Networksoc$gender	))
+Networksoc$imm<-	as.numeric(as.character(	Networksoc$imm)	)
+Networksoc$urban<-	as.numeric(as.character(	Networksoc$urban)	)
+
+attach(Networksoc)
+
+
+save(Networksoc,file="/Users/schmaelz/Documents/GITHUB/CitizenshipNetworks/data/Networksoc.Rdata")
+
+#load the data frame with the nodes from script 01_prepare data
+load("/Users/schmaelz/Documents/GITHUB/CitizenshipNetworks/data/Networkdata.Rdata")
+# create new dataframe including socio demographic and node variables
+socall<- data.frame(Networksoc, Networkdata)
+
+```
+
+```{r}
+########split up by central node P (ancestry based citizenship ideal)
+
+attach(socall)
+
+P1 <- socall[ which(P==1),]
+detach(socall)
+P1half <-data.frame(P1)
+
+P0 <- socall[ which(P==0),]
+detach(socall)
+P0half <-data.frame(P0)
+
+library('qgraph')
+library('IsingFit')
+library('bootnet')
+library('igraph')
+
+
+attach(P1half)
+P1net<- IsingFit (na.omit (P1half))
+
+citizensGlobal$weiadj
+citizensGlobal$thresholds
+Globalgraph5<-qgraph(citizensGlobal$weiadj, layout="spring", cut=.8) 
+
+
+
+
+```
+
+```{r}
+
+############ split data by age
+
+attach(socall)
+library('qgraph')
+library('IsingFit')
+library('bootnet')
+library('igraph')
+
+#########old people
+age_old <- socall[ which(socall$old==1),]
+detach(socall)
+attach(age_old)
+olddataset <-data.frame(A1,A2,A3,B,C1,C2,C3,D1,D2,D3,D4,D5,E,F,G,H1,H2,H3,H4,H5,I,J,K,L,M,N1,N2,O,P,Q,R,S,T)
+
+summary (olddataset)
+attach(olddataset)
+
+#create sumscores for older cases
+sumscoresold<-apply(olddataset, 1, sum,na.rm = TRUE)  
+mean(sumscoresold)
+sd(sumscoresold)
+library(Rmisc)
+
+ci_old<-CI(sumscoresold, ci = 0.95)
+ci_old<-data.frame(CI(sumscoresold, ci = 0.95))
+ci_old_new<-t(ci_old)
+ci_old_new<-data.frame(ci_old_new)
+
+
+oldnet<- IsingFit (na.omit (olddataset))
+
+oldnet$weiadj
+oldnet$thresholds
+oldnetgraph5<-qgraph(oldnet$weiadj, layout="spring", cut=.8) 
+
+library(igraph)
+cluster_walktrap
+
+oldnetiGraph5<-graph_from_adjacency_matrix(abs(oldnet$weiadj),'undirected', weighted=TRUE, add.colnames=FALSE)
+
+oldnetCom5<-cluster_walktrap(oldnetiGraph5)
+layout(t(1:1))
+communities(oldnetCom5)
+qgraph(oldnet$weiadj, layout="spring", cut=.8, groups=communities(oldnetCom5), legend=FALSE)
+
+
+
+oldnetCentrality5<-centralityTable(oldnetgraph5, standardized=FALSE)
+centralityPlot(oldnetgraph5, scale="raw")
+
+###Avergae shortest path length
+
+oldnetSPL<-centrality(oldnetgraph5)$ShortestPathLengths
+oldnetSPL<-oldnetSPL[upper.tri(oldnetSPL)]
+
+
+####Small world Analyses like Dalege ANES
+SW_Index <- function (Graph, ci = c (.1, .05, .01, .001))
+{
+  randomC <- vector (, 1000)
+  randomL <- vector (, 1000)
+  for (i in 1:1000)
+  {
+    Rgraph <- erdos.renyi.game (vcount (Graph), ecount (Graph), 'gnm')
+    randomC [i] <- transitivity (Rgraph, 'average')
+    randomL [i] <- average.path.length(Rgraph)
+  }
+  MrandomC <- mean (randomC)
+  MrandomL <- mean (randomL)
+  Clustering.Graph = transitivity (Graph, 'average')
+  ASPL.Graph = average.path.length (Graph)
+  Index <- (Clustering.Graph / MrandomC) / (ASPL.Graph / MrandomL)
+  
+  sm_sample <- vector (, 1000)
+  for (i in 1:1000)
+  {
+    Rgraph <- erdos.renyi.game (vcount (Graph), ecount (Graph), 'gnm')
+    sm_sample [i] <- (transitivity (Rgraph, 'average') / MrandomC) /(average.path.length(Rgraph) / MrandomL)
+  }
+  CI <- as.vector (((quantile (sm_sample, 1 - (ci / 2)) - quantile (sm_sample, ci / 2)) / 2) + 1)
+  return (list (SW.Index = Index, Upper.CI = data.frame (CI = ci, Value.CI = CI), 
+                Clustering.Graph = Clustering.Graph, Clustering.Random.Graph = MrandomC,
+                ASPL.Graph = ASPL.Graph, ASPL.Random.Graph = MrandomL))
+}
+
+oldnetiGraph <- graph.adjacency (oldnet $ weiadj, "undirected", diag = FALSE, weighted = TRUE)
+
+
+SW_Index (oldnetiGraph)
+
+#########middle aged people
+
+attach(socall)
+age_middle <- socall[ which(socall$middle==1),]
+detach(socall)
+attach(age_middle)
+middledataset <-data.frame(A1,A2,A3,B,C1,C2,C3,D1,D2,D3,D4,D5,E,F,G,H1,H2,H3,H4,H5,I,J,K,L,M,N1,N2,O,P,Q,R,S,T)
+
+summary (middledataset)
+attach(middledataset)
+
+
+sumscoresmiddle<-apply(middledataset, 1, sum,na.rm = TRUE)  
+mean(sumscoresmiddle)
+sd(sumscoresmiddle)
+
+
+library(Rmisc)
+ci_middle<-data.frame(CI(sumscoresmiddle, ci = 0.95))
+ci_middle_new<-t(ci_middle)
+ci_middle_new<-data.frame(ci_middle_new)
+
+
+middlenet<- IsingFit (na.omit (middledataset))
+
+middlenet$weiadj
+middlenet$thresholds
+middlenetgraph5<-qgraph(middlenet$weiadj, layout="spring", cut=.8) 
+
+ibrary(igraph)
+cluster_walktrap
+
+middlenetiGraph5<-graph_from_adjacency_matrix(abs(middlenet$weiadj),'undirected', weighted=TRUE, add.colnames=FALSE)
+
+middlenetCom5<-cluster_walktrap(middlenetiGraph5)
+layout(t(1:1))
+communities(middlenetCom5)
+qgraph(middlenet$weiadj, layout="spring", cut=.8, groups=communities(middlenetCom5), legend=FALSE)
+
+
+
+middlenetCentrality5<-centralityTable(middlenetgraph5, standardized=FALSE)
+centralityPlot(middlenetgraph5, scale="raw")
+
+###Avergae shortest path length
+
+middlenetSPL<-centrality(middlenetgraph5)$ShortestPathLengths
+middlenetSPL<-middlenetSPL[upper.tri(middlenetSPL)]
+
+
+
+####Small world Analyses like Dalege ANES
+SW_Index <- function (Graph, ci = c (.1, .05, .01, .001))
+{
+  randomC <- vector (, 1000)
+  randomL <- vector (, 1000)
+  for (i in 1:1000)
+  {
+    Rgraph <- erdos.renyi.game (vcount (Graph), ecount (Graph), 'gnm')
+    randomC [i] <- transitivity (Rgraph, 'average')
+    randomL [i] <- average.path.length(Rgraph)
+  }
+  MrandomC <- mean (randomC)
+  MrandomL <- mean (randomL)
+  Clustering.Graph = transitivity (Graph, 'average')
+  ASPL.Graph = average.path.length (Graph)
+  Index <- (Clustering.Graph / MrandomC) / (ASPL.Graph / MrandomL)
+  
+  sm_sample <- vector (, 1000)
+  for (i in 1:1000)
+  {
+    Rgraph <- erdos.renyi.game (vcount (Graph), ecount (Graph), 'gnm')
+    sm_sample [i] <- (transitivity (Rgraph, 'average') / MrandomC) /(average.path.length(Rgraph) / MrandomL)
+  }
+  CI <- as.vector (((quantile (sm_sample, 1 - (ci / 2)) - quantile (sm_sample, ci / 2)) / 2) + 1)
+  return (list (SW.Index = Index, Upper.CI = data.frame (CI = ci, Value.CI = CI), 
+                Clustering.Graph = Clustering.Graph, Clustering.Random.Graph = MrandomC,
+                ASPL.Graph = ASPL.Graph, ASPL.Random.Graph = MrandomL))
+}
+
+middlenetiGraph <- graph.adjacency (middlenet $ weiadj, "undirected", diag = FALSE, weighted = TRUE)
+
+
+SW_Index (middlenetiGraph)
+
+
+###### young people
+
+
+attach(socall)
+age_young <- socall[ which(socall$young==1),]
+detach(socall)
+attach(age_young)
+youngdataset <-data.frame(A1,A2,A3,B,C1,C2,C3,D1,D2,D3,D4,D5,E,F,G,H1,H2,H3,H4,H5,I,J,K,L,M,N1,N2,O,P,Q,R,S,T)
+
+summary (youngdataset)
+attach(youngdataset)
+
+
+sumscoresyoung<-apply(youngdataset, 1, sum,na.rm = TRUE)  
+mean(sumscoresyoung)
+sd(sumscoresyoung)
+
+
+
+
+library(Rmisc)
+ci_young<-data.frame(CI(sumscoresyoung, ci = 0.95))
+ci_young_new<-t(ci_young)
+ci_young_new<-data.frame(ci_young_new)
+
+
+youngnet<- IsingFit (na.omit (youngdataset))
+
+youngnet$weiadj
+youngnet$thresholds
+youngnetgraph5<-qgraph(youngnet$weiadj, layout="spring", cut=.8) 
+
+ibrary(igraph)
+cluster_walktrap
+
+youngnetiGraph5<-graph_from_adjacency_matrix(abs(youngnet$weiadj),'undirected', weighted=TRUE, add.colnames=FALSE)
+
+youngnetCom5<-cluster_walktrap(youngnetiGraph5)
+layout(t(1:1))
+communities(youngnetCom5)
+qgraph(youngnet$weiadj, layout="spring", cut=.8, groups=communities(youngnetCom5), legend=FALSE)
+
+
+
+youngnetCentrality5<-centralityTable(youngnetgraph5, standardized=FALSE)
+centralityPlot(youngnetgraph5, scale="raw")
+
+###Avergae shortest path length
+
+youngnetSPL<-centrality(youngnetgraph5)$ShortestPathLengths
+youngnetSPL<-middlenetSPL[upper.tri(youngnetSPL)]
+
+
+
+####Small world Analyses like Dalege ANES
+SW_Index <- function (Graph, ci = c (.1, .05, .01, .001))
+{
+  randomC <- vector (, 1000)
+  randomL <- vector (, 1000)
+  for (i in 1:1000)
+  {
+    Rgraph <- erdos.renyi.game (vcount (Graph), ecount (Graph), 'gnm')
+    randomC [i] <- transitivity (Rgraph, 'average')
+    randomL [i] <- average.path.length(Rgraph)
+  }
+  MrandomC <- mean (randomC)
+  MrandomL <- mean (randomL)
+  Clustering.Graph = transitivity (Graph, 'average')
+  ASPL.Graph = average.path.length (Graph)
+  Index <- (Clustering.Graph / MrandomC) / (ASPL.Graph / MrandomL)
+  
+  sm_sample <- vector (, 1000)
+  for (i in 1:1000)
+  {
+    Rgraph <- erdos.renyi.game (vcount (Graph), ecount (Graph), 'gnm')
+    sm_sample [i] <- (transitivity (Rgraph, 'average') / MrandomC) /(average.path.length(Rgraph) / MrandomL)
+  }
+  CI <- as.vector (((quantile (sm_sample, 1 - (ci / 2)) - quantile (sm_sample, ci / 2)) / 2) + 1)
+  return (list (SW.Index = Index, Upper.CI = data.frame (CI = ci, Value.CI = CI), 
+                Clustering.Graph = Clustering.Graph, Clustering.Random.Graph = MrandomC,
+                ASPL.Graph = ASPL.Graph, ASPL.Random.Graph = MrandomL))
+}
+
+youngnetiGraph <- graph.adjacency (youngnet $ weiadj, "undirected", diag = FALSE, weighted = TRUE)
+
+
+SW_Index (youngnetiGraph)
+
+
+
+
+
+```
+
+```{r}
+
+############ split by urban
+
+attach(socall)
+library('qgraph')
+library('IsingFit')
+library('bootnet')
+library('igraph')
+
+
+
+#########urban people
+urban <- socall[ which(socall$urban==1),]
+detach(socall)
+attach(urban)
+urbandataset <-data.frame(A1,A2,A3,B,C1,C2,C3,D1,D2,D3,D4,D5,E,F,G,H1,H2,H3,H4,H5,I,J,K,L,M,N1,N2,O,P,Q,R,S,T)
+
+summary (urbandataset)
+attach(urbandataset)
+
+sumscoresurban<-apply(urbandataset, 1, sum,na.rm = TRUE)  
+mean(sumscoresurban)
+sd(sumscoresurban)
+
+
+
+library(Rmisc)
+ci_urban<-data.frame(CI(sumscoresurban, ci = 0.95))
+ci_urban_new<-t(ci_urban)
+ci_urban_new<-data.frame(ci_urban_new)
+
+urbannet<- IsingFit (na.omit (urbandataset))
+
+urbannet$weiadj
+urbannet$thresholds
+urbannetgraph5<-qgraph(urbannet$weiadj, layout="spring", cut=.8) 
+
+ibrary(igraph)
+cluster_walktrap
+
+urbannetiGraph5<-graph_from_adjacency_matrix(abs(urbannet$weiadj),'undirected', weighted=TRUE, add.colnames=FALSE)
+
+urbannetCom5<-cluster_walktrap(urbannetiGraph5)
+layout(t(1:1))
+communities(urbannetCom5)
+qgraph(urbannet$weiadj, layout="spring", cut=.8, groups=communities(urbannetCom5), legend=FALSE)
+
+
+
+urbannetCentrality5<-centralityTable(urbannetgraph5, standardized=FALSE)
+centralityPlot(urbannetgraph5, scale="raw")
+
+###Avergae shortest path length
+
+urbannetSPL<-centrality(urbannetgraph5)$ShortestPathLengths
+urbannetSPL<-urbannetSPL[upper.tri(urbannetSPL)]
+
+
+####Small world Analyses like Dalege ANES
+SW_Index <- function (Graph, ci = c (.1, .05, .01, .001))
+{
+  randomC <- vector (, 1000)
+  randomL <- vector (, 1000)
+  for (i in 1:1000)
+  {
+    Rgraph <- erdos.renyi.game (vcount (Graph), ecount (Graph), 'gnm')
+    randomC [i] <- transitivity (Rgraph, 'average')
+    randomL [i] <- average.path.length(Rgraph)
+  }
+  MrandomC <- mean (randomC)
+  MrandomL <- mean (randomL)
+  Clustering.Graph = transitivity (Graph, 'average')
+  ASPL.Graph = average.path.length (Graph)
+  Index <- (Clustering.Graph / MrandomC) / (ASPL.Graph / MrandomL)
+  
+  sm_sample <- vector (, 1000)
+  for (i in 1:1000)
+  {
+    Rgraph <- erdos.renyi.game (vcount (Graph), ecount (Graph), 'gnm')
+    sm_sample [i] <- (transitivity (Rgraph, 'average') / MrandomC) /(average.path.length(Rgraph) / MrandomL)
+  }
+  CI <- as.vector (((quantile (sm_sample, 1 - (ci / 2)) - quantile (sm_sample, ci / 2)) / 2) + 1)
+  return (list (SW.Index = Index, Upper.CI = data.frame (CI = ci, Value.CI = CI), 
+                Clustering.Graph = Clustering.Graph, Clustering.Random.Graph = MrandomC,
+                ASPL.Graph = ASPL.Graph, ASPL.Random.Graph = MrandomL))
+}
+
+urbannetiGraph <- graph.adjacency (urbannet $ weiadj, "undirected", diag = FALSE, weighted = TRUE)
+
+
+SW_Index (urbannetiGraph)
+
+#########rural people
+
+attach(socall)
+rural<- socall[ which(socall$urban==0),]
+detach(socall)
+attach(rural)
+ruraldataset <-data.frame(A1,A2,A3,B,C1,C2,C3,D1,D2,D3,D4,D5,E,F,G,H1,H2,H3,H4,H5,I,J,K,L,M,N1,N2,O,P,Q,R,S,T)
+
+summary (ruraldataset)
+attach(ruraldataset)
+
+
+sumscoresrural<-apply(ruraldataset, 1, sum,na.rm = TRUE)  
+mean(sumscoresrural)
+sd(sumscoresrural)
+
+
+
+library(Rmisc)
+ci_rural<-data.frame(CI(sumscoresrural, ci = 0.95))
+ci_rural_new<-t(ci_rural)
+ci_rural_new<-data.frame(ci_rural_new)
+
+
+ruralnet<- IsingFit (na.omit (ruraldataset))
+
+ruralnet$weiadj
+ruralnet$thresholds
+ruralnetgraph5<-qgraph(middlenet$weiadj, layout="spring", cut=.8) 
+
+ibrary(igraph)
+cluster_walktrap
+
+ruralnetiGraph5<-graph_from_adjacency_matrix(abs(ruralnet$weiadj),'undirected', weighted=TRUE, add.colnames=FALSE)
+
+ruralnetCom5<-cluster_walktrap(ruralnetiGraph5)
+layout(t(1:1))
+communities(ruralnetCom5)
+qgraph(ruralnet$weiadj, layout="spring", cut=.8, groups=communities(ruralnetCom5), legend=FALSE)
+
+
+
+ruralnetCentrality5<-centralityTable(ruralnetgraph5, standardized=FALSE)
+centralityPlot(ruralnetgraph5, scale="raw")
+
+###Avergae shortest path length
+
+ruralnetSPL<-centrality(ruralnetgraph5)$ShortestPathLengths
+ruralnetSPL<-ruralnetSPL[upper.tri(ruralnetSPL)]
+
+
+
+####Small world Analyses like Dalege ANES
+SW_Index <- function (Graph, ci = c (.1, .05, .01, .001))
+{
+  randomC <- vector (, 1000)
+  randomL <- vector (, 1000)
+  for (i in 1:1000)
+  {
+    Rgraph <- erdos.renyi.game (vcount (Graph), ecount (Graph), 'gnm')
+    randomC [i] <- transitivity (Rgraph, 'average')
+    randomL [i] <- average.path.length(Rgraph)
+  }
+  MrandomC <- mean (randomC)
+  MrandomL <- mean (randomL)
+  Clustering.Graph = transitivity (Graph, 'average')
+  ASPL.Graph = average.path.length (Graph)
+  Index <- (Clustering.Graph / MrandomC) / (ASPL.Graph / MrandomL)
+  
+  sm_sample <- vector (, 1000)
+  for (i in 1:1000)
+  {
+    Rgraph <- erdos.renyi.game (vcount (Graph), ecount (Graph), 'gnm')
+    sm_sample [i] <- (transitivity (Rgraph, 'average') / MrandomC) /(average.path.length(Rgraph) / MrandomL)
+  }
+  CI <- as.vector (((quantile (sm_sample, 1 - (ci / 2)) - quantile (sm_sample, ci / 2)) / 2) + 1)
+  return (list (SW.Index = Index, Upper.CI = data.frame (CI = ci, Value.CI = CI), 
+                Clustering.Graph = Clustering.Graph, Clustering.Random.Graph = MrandomC,
+                ASPL.Graph = ASPL.Graph, ASPL.Random.Graph = MrandomL))
+}
+
+ruralnetiGraph <- graph.adjacency (ruralnet $ weiadj, "undirected", diag = FALSE, weighted = TRUE)
+
+
+SW_Index (ruralnetiGraph)
+
+
+
+#################
+
+
+```
+
+```{r}
+
+############ split by education
+
+attach(socall)
+library('qgraph')
+library('IsingFit')
+library('bootnet')
+library('igraph')
+
+
+
+#########edu
+eduhigh <- socall[ which(socall$edu==1),]
+detach(socall)
+attach(eduhigh)
+
+edudataset <-data.frame(A1,A2,A3,B,C1,C2,C3,D1,D2,D3,D4,D5,E,F,G,H1,H2,H3,H4,H5,I,J,K,L,M,N1,N2,O,P,Q,R,S,T)
+
+ 
+
+sumscoresedu<-apply(edudataset, 1, sum,na.rm = TRUE)  
+mean(sumscoresedu)
+sd(sumscoresedu)
+
+
+
+library(Rmisc)
+ci_edu<-data.frame(CI(sumscoresedu, ci = 0.95))
+ci_edu_new<-t(ci_edu)
+ci_edu_new<-data.frame(ci_edu_new)
+
+
+edunet<- IsingFit (na.omit (edudataset))
+
+edunet$weiadj
+edunet$thresholds
+edunetgraph5<-qgraph(edunet$weiadj, layout="spring", cut=.8) 
+
+ibrary(igraph)
+cluster_walktrap
+
+edunetiGraph5<-graph_from_adjacency_matrix(abs(edunet$weiadj),'undirected', weighted=TRUE, add.colnames=FALSE)
+
+edunetCom5<-cluster_walktrap(edunetiGraph5)
+layout(t(1:1))
+communities(edunetCom5)
+qgraph(edunet$weiadj, layout="spring", cut=.8, groups=communities(edunetCom5), legend=FALSE)
+
+
+
+edunetCentrality5<-centralityTable(edunetgraph5, standardized=FALSE)
+centralityPlot(edunetgraph5, scale="raw")
+
+###Avergae shortest path length
+
+edunetSPL<-centrality(edunetgraph5)$ShortestPathLengths
+edunetSPL<-edunetSPL[upper.tri(edunetSPL)]
+
+
+
+####Small world Analyses like Dalege ANES
+SW_Index <- function (Graph, ci = c (.1, .05, .01, .001))
+{
+  randomC <- vector (, 1000)
+  randomL <- vector (, 1000)
+  for (i in 1:1000)
+  {
+    Rgraph <- erdos.renyi.game (vcount (Graph), ecount (Graph), 'gnm')
+    randomC [i] <- transitivity (Rgraph, 'average')
+    randomL [i] <- average.path.length(Rgraph)
+  }
+  MrandomC <- mean (randomC)
+  MrandomL <- mean (randomL)
+  Clustering.Graph = transitivity (Graph, 'average')
+  ASPL.Graph = average.path.length (Graph)
+  Index <- (Clustering.Graph / MrandomC) / (ASPL.Graph / MrandomL)
+  
+  sm_sample <- vector (, 1000)
+  for (i in 1:1000)
+  {
+    Rgraph <- erdos.renyi.game (vcount (Graph), ecount (Graph), 'gnm')
+    sm_sample [i] <- (transitivity (Rgraph, 'average') / MrandomC) /(average.path.length(Rgraph) / MrandomL)
+  }
+  CI <- as.vector (((quantile (sm_sample, 1 - (ci / 2)) - quantile (sm_sample, ci / 2)) / 2) + 1)
+  return (list (SW.Index = Index, Upper.CI = data.frame (CI = ci, Value.CI = CI), 
+                Clustering.Graph = Clustering.Graph, Clustering.Random.Graph = MrandomC,
+                ASPL.Graph = ASPL.Graph, ASPL.Random.Graph = MrandomL))
+}
+
+edunetiGraph <- graph.adjacency (edunet $ weiadj, "undirected", diag = FALSE, weighted = TRUE)
+
+
+SW_Index (edunetiGraph)
+
+#########lower educated people
+
+attach(socall)
+lowed<- socall[ which(socall$edu==0),]
+detach(socall)
+attach(lowed)
+loweddataset <-data.frame(A1,A2,A3,B,C1,C2,C3,D1,D2,D3,D4,D5,E,F,G,H1,H2,H3,H4,H5,I,J,K,L,M,N1,N2,O,P,Q,R,S,T)
+
+summary (loweddataset)
+attach(loweddataset)
+
+
+sumscoreslowed<-apply(loweddataset, 1, sum,na.rm = TRUE)  
+mean(sumscoreslowed)
+sd(sumscoreslowed)
+
+
+
+library(Rmisc)
+ci_lowed<-data.frame(CI(sumscoreslowed, ci = 0.95))
+ci_lowed_new<-t(ci_lowed)
+ci_lowed_new<-data.frame(ci_lowed_new)
+
+
+lowednet<- IsingFit (na.omit (loweddataset))
+
+lowednet$weiadj
+lowednet$thresholds
+lowednetgraph5<-qgraph(lowednet$weiadj, layout="spring", cut=.8) 
+
+ibrary(igraph)
+cluster_walktrap
+
+lowednetiGraph5<-graph_from_adjacency_matrix(abs(lowednet$weiadj),'undirected', weighted=TRUE, add.colnames=FALSE)
+
+lowednetCom5<-cluster_walktrap(lowednetiGraph5)
+layout(t(1:1))
+communities(lowednetCom5)
+qgraph(lowednet$weiadj, layout="spring", cut=.8, groups=communities(lowednetCom5), legend=FALSE)
+
+
+
+lowednetCentrality5<-centralityTable(lowednetgraph5, standardized=FALSE)
+centralityPlot(lowednetgraph5, scale="raw")
+
+###Avergae shortest path length
+
+lowednetSPL<-centrality(lowednetgraph5)$ShortestPathLengths
+lowednetSPL<-lowednetSPL[upper.tri(lowednetSPL)]
+
+
+
+####Small world Analyses like Dalege ANES
+SW_Index <- function (Graph, ci = c (.1, .05, .01, .001))
+{
+  randomC <- vector (, 1000)
+  randomL <- vector (, 1000)
+  for (i in 1:1000)
+  {
+    Rgraph <- erdos.renyi.game (vcount (Graph), ecount (Graph), 'gnm')
+    randomC [i] <- transitivity (Rgraph, 'average')
+    randomL [i] <- average.path.length(Rgraph)
+  }
+  MrandomC <- mean (randomC)
+  MrandomL <- mean (randomL)
+  Clustering.Graph = transitivity (Graph, 'average')
+  ASPL.Graph = average.path.length (Graph)
+  Index <- (Clustering.Graph / MrandomC) / (ASPL.Graph / MrandomL)
+  
+  sm_sample <- vector (, 1000)
+  for (i in 1:1000)
+  {
+    Rgraph <- erdos.renyi.game (vcount (Graph), ecount (Graph), 'gnm')
+    sm_sample [i] <- (transitivity (Rgraph, 'average') / MrandomC) /(average.path.length(Rgraph) / MrandomL)
+  }
+  CI <- as.vector (((quantile (sm_sample, 1 - (ci / 2)) - quantile (sm_sample, ci / 2)) / 2) + 1)
+  return (list (SW.Index = Index, Upper.CI = data.frame (CI = ci, Value.CI = CI), 
+                Clustering.Graph = Clustering.Graph, Clustering.Random.Graph = MrandomC,
+                ASPL.Graph = ASPL.Graph, ASPL.Random.Graph = MrandomL))
+}
+
+lowednetiGraph <- graph.adjacency (lowednet $ weiadj, "undirected", diag = FALSE, weighted = TRUE)
+
+
+SW_Index (lowednetiGraph)
+
+
+
+```
+
+```{r}
+
+############ split by immigrants status
+
+attach(socall)
+library('qgraph')
+library('IsingFit')
+library('bootnet')
+library('igraph')
+
+
+
+#########immigrants
+immyes <- socall[ which(socall$imm==1),]
+detach(socall)
+attach(immyes)
+
+immdataset <-data.frame(A1,A2,A3,B,C1,C2,C3,D1,D2,D3,D4,D5,E,F,G,H1,H2,H3,H4,H5,I,J,K,L,M,N1,N2,O,P,Q,R,S,T)
+
+ 
+
+sumscoresimmyes<-apply(immdataset, 1, sum,na.rm = TRUE)  
+mean(sumscoresimmyes)
+sd(sumscoresimmyes)
+
+
+
+library(Rmisc)
+ci_immyes<-data.frame(CI(sumscoresimmyes, ci = 0.95))
+ci_immyes_new<-t(ci_immyes)
+ci_immyes_new<-data.frame(ci_immyes_new)
+
+
+immyesnet<- IsingFit (na.omit (immdataset))
+
+immyesnet$weiadj
+immyesnet$thresholds
+immyesnetgraph5<-qgraph(immyesnet$weiadj, layout="spring", cut=.8) 
+
+ibrary(igraph)
+cluster_walktrap
+
+immyesnetiGraph5<-graph_from_adjacency_matrix(abs(immyesnet$weiadj),'undirected', weighted=TRUE, add.colnames=FALSE)
+
+immyesnetCom5<-cluster_walktrap(immyesnetiGraph5)
+layout(t(1:1))
+communities(immyesnetCom5)
+qgraph(immyesnet$weiadj, layout="spring", cut=.8, groups=communities(immyesnetCom5), legend=FALSE)
+
+
+
+immyesnetCentrality5<-centralityTable(immyesnetgraph5, standardized=FALSE)
+centralityPlot(immyesnetgraph5, scale="raw")
+
+###Avergae shortest path length
+
+immyesnetSPL<-centrality(immyesnetgraph5)$ShortestPathLengths
+immyesnetSPL<-immyesnetSPL[upper.tri(immyesnetSPL)]
+
+
+####Small world Analyses like Dalege ANES
+SW_Index <- function (Graph, ci = c (.1, .05, .01, .001))
+{
+  randomC <- vector (, 1000)
+  randomL <- vector (, 1000)
+  for (i in 1:1000)
+  {
+    Rgraph <- erdos.renyi.game (vcount (Graph), ecount (Graph), 'gnm')
+    randomC [i] <- transitivity (Rgraph, 'average')
+    randomL [i] <- average.path.length(Rgraph)
+  }
+  MrandomC <- mean (randomC)
+  MrandomL <- mean (randomL)
+  Clustering.Graph = transitivity (Graph, 'average')
+  ASPL.Graph = average.path.length (Graph)
+  Index <- (Clustering.Graph / MrandomC) / (ASPL.Graph / MrandomL)
+  
+  sm_sample <- vector (, 1000)
+  for (i in 1:1000)
+  {
+    Rgraph <- erdos.renyi.game (vcount (Graph), ecount (Graph), 'gnm')
+    sm_sample [i] <- (transitivity (Rgraph, 'average') / MrandomC) /(average.path.length(Rgraph) / MrandomL)
+  }
+  CI <- as.vector (((quantile (sm_sample, 1 - (ci / 2)) - quantile (sm_sample, ci / 2)) / 2) + 1)
+  return (list (SW.Index = Index, Upper.CI = data.frame (CI = ci, Value.CI = CI), 
+                Clustering.Graph = Clustering.Graph, Clustering.Random.Graph = MrandomC,
+                ASPL.Graph = ASPL.Graph, ASPL.Random.Graph = MrandomL))
+}
+
+immyesnetiGraph <- graph.adjacency (immyesnet $ weiadj, "undirected", diag = FALSE, weighted = TRUE)
+
+
+SW_Index (immyesnetiGraph)
+
+#########none immigrants people
+
+attach(socall)
+noimm<- socall[ which(socall$imm==0),]
+detach(socall)
+attach(noimm)
+noimmdataset <-data.frame(A1,A2,A3,B,C1,C2,C3,D1,D2,D3,D4,D5,E,F,G,H1,H2,H3,H4,H5,I,J,K,L,M,N1,N2,O,P,Q,R,S,T)
+
+summary (noimmdataset)
+attach(noimmdataset)
+
+
+sumscoresnoimm<-apply(noimmdataset, 1, sum,na.rm = TRUE)  
+mean(sumscoresnoimm)
+sd(sumscoresnoimm)
+
+
+
+library(Rmisc)
+ci_noimm<-data.frame(CI(sumscoresnoimm, ci = 0.95))
+ci_noimm_new<-t(ci_noimm)
+ci_noimm_new<-data.frame(ci_noimm_new)
+
+
+noimmnet<- IsingFit (na.omit (noimmdataset))
+
+noimmnet$weiadj
+noimmnet$thresholds
+noimmnetgraph5<-qgraph(noimmnet$weiadj, layout="spring", cut=.8) 
+
+ibrary(igraph)
+cluster_walktrap
+
+noimmnetiGraph5<-graph_from_adjacency_matrix(abs(noimmnet$weiadj),'undirected', weighted=TRUE, add.colnames=FALSE)
+
+noimmnetCom5<-cluster_walktrap(noimmnetiGraph5)
+layout(t(1:1))
+communities(noimmnetCom5)
+qgraph(noimmnet$weiadj, layout="spring", cut=.8, groups=communities(noimmnetCom5), legend=FALSE)
+
+
+
+noimmnetCentrality5<-centralityTable(noimmnetgraph5, standardized=FALSE)
+centralityPlot(noimmnetgraph5, scale="raw")
+
+###Avergae shortest path length
+
+noimmnetSPL<-centrality(noimmnetgraph5)$ShortestPathLengths
+noimmnetSPL<-noimmnetSPL[upper.tri(noimmnetSPL)]
+
+
+####Small world Analyses like Dalege ANES
+SW_Index <- function (Graph, ci = c (.1, .05, .01, .001))
+{
+  randomC <- vector (, 1000)
+  randomL <- vector (, 1000)
+  for (i in 1:1000)
+  {
+    Rgraph <- erdos.renyi.game (vcount (Graph), ecount (Graph), 'gnm')
+    randomC [i] <- transitivity (Rgraph, 'average')
+    randomL [i] <- average.path.length(Rgraph)
+  }
+  MrandomC <- mean (randomC)
+  MrandomL <- mean (randomL)
+  Clustering.Graph = transitivity (Graph, 'average')
+  ASPL.Graph = average.path.length (Graph)
+  Index <- (Clustering.Graph / MrandomC) / (ASPL.Graph / MrandomL)
+  
+  sm_sample <- vector (, 1000)
+  for (i in 1:1000)
+  {
+    Rgraph <- erdos.renyi.game (vcount (Graph), ecount (Graph), 'gnm')
+    sm_sample [i] <- (transitivity (Rgraph, 'average') / MrandomC) /(average.path.length(Rgraph) / MrandomL)
+  }
+  CI <- as.vector (((quantile (sm_sample, 1 - (ci / 2)) - quantile (sm_sample, ci / 2)) / 2) + 1)
+  return (list (SW.Index = Index, Upper.CI = data.frame (CI = ci, Value.CI = CI), 
+                Clustering.Graph = Clustering.Graph, Clustering.Random.Graph = MrandomC,
+                ASPL.Graph = ASPL.Graph, ASPL.Random.Graph = MrandomL))
+}
+
+noimmnetiGraph <- graph.adjacency (noimmnet $ weiadj, "undirected", diag = FALSE, weighted = TRUE)
+
+
+SW_Index (noimmnetiGraph)
+
+
+
+
+```
+
+```{r}
+#####plot means of sumscores with error bars
+
+
+#age
+agerow<-c("old","middle","young")
+age_total<-rbind(ci_old_new,ci_middle_new,ci_young_new)
+age_total<-cbind(agerow,age_total)
+library(ggplot2)
+ageplot <- ggplot(age_total, aes(agerow, mean)) + 
+                   geom_errorbar(aes(ymin = lower, ymax = upper), width=0.2)
+  
+
+ageplot + labs(y="sumscores and 95% confidence interval", x = "age") + theme_classic()
+
+
+
+
+#urbanization
+
+urbanrow<-c("urban","rural")
+urban_total<-rbind(ci_urban_new,ci_rural_new)
+urban_total<-cbind(urbanrow,urban_total)
+library(ggplot2)
+urbanplot <- ggplot(urban_total, aes(urbanrow, mean)) + 
+                   geom_errorbar(aes(ymin = lower, ymax = upper), width=0.2)
+
+urbanplot + labs(y="sumscores and 95% confidence interval", x = "urbanity") + theme_classic()
+
+#Education
+
+edurow<-c("high","middle & low")
+edu_total<-rbind(ci_edu_new,ci_lowed_new)
+edu_total<-cbind(edurow,edu_total)
+library(ggplot2)
+eduplot <- ggplot(edu_total, aes(edurow, mean)) + 
+                   geom_errorbar(aes(ymin = lower, ymax = upper), width=0.2)
+
+eduplot + labs(y="sumscores and 95% confidence interval", x = "education") + theme_classic()
+
+#Immigration
+
+immrow<-c("yes","no")
+imm_total<-rbind(ci_immyes_new,ci_noimm_new)
+imm_total<-cbind(immrow,imm_total)
+library(ggplot2)
+immplot <- ggplot(imm_total, aes(immrow, mean)) + 
+                   geom_errorbar(aes(ymin = lower, ymax = upper), width=0.2)
+
+immplot + labs(y="sumscores and 95% confidence interval", x = "immigration background in the family") + theme_classic()
+
+
+```
+
+```{r}
+
+############ NetworkComparisonTests
+####Immigration
+#delete rows with missing values since NCT does not allow missing values
+complete_immdataset<-immdataset[complete.cases(immdataset), ]
+complete_noimmdataset<-noimmdataset[complete.cases(noimmdataset), ]
+
+#folgendes dauert ueber eine Stunde
+####immigration and non immigration
+library(NetworkComparisonTest)
+set.seed(1)
+NCTimmigrants <- NCT(complete_immdataset, complete_noimmdataset, it=20, binary.data=TRUE, test.edges=TRUE, edges="all")
+NCTimmigrants$glstrinv.real
+NCTimmigrants$glstrinv.sep
+NCTimmigrants$glstrinv.pval
+NCTimmigrants$nwinv.real
+NCTimmigrants$nwinv.perm
+NCTimmigrants$nwinv.pval
+NCTimmigrants$edges.tested
+NCTimmigrants$einv.real
+NCTimmigrants$einv.pvals
+NCTimmigrants$einv.perm
+plot(NCTimmigrants, what="network")
+plot(NCTimmigrants, what="strength")
+plot(NCTimmigrants, what="edge")
+
+
+####Education and Non education
+#delete rows with missing values since NCT does not allow missing values
+complete_highed<-edudataset[complete.cases(edudataset), ]
+complete_lowed<-loweddataset[complete.cases(loweddataset), ]
+
+#takes long, default is it=100
+
+library(NetworkComparisonTest)
+set.seed(1)
+NCTeducation <- NCT(complete_highed, complete_lowed, it=20, binary.data=TRUE, test.edges=TRUE, edges="all")
+NCTeducation$glstrinv.real
+NCTeducation$glstrinv.sep
+NCTeducation$glstrinv.pval
+NCTeducation$nwinv.real
+NCTeducation$nwinv.perm
+NCTeducation$nwinv.pval
+NCTeducation$edges.tested
+NCTeducation$einv.real
+NCTeducation$einv.pvals
+NCTeducation$einv.perm
+
+nf <- layout(matrix(c(1,2,3),ncol=1), widths=c(4,4,4), heights=c(2,1,1), TRUE) 
+plot(NCTeducation, what="network")
+plot(NCTeducation, what="strength")
+plot(NCTeducation, what="edge")
+
+
+###### urban vs rural
+#delete rows with missing values since NCT does not allow missing values
+complete_urban<-ruraldataset[complete.cases(ruraldataset), ]
+complete_rural<-urbandataset[complete.cases(urbandataset), ]
+
+#takes long, default is it=100
+
+library(NetworkComparisonTest)
+set.seed(1)
+NCTurban <- NCT(complete_urban, complete_rural, it=20, binary.data=TRUE, test.edges=TRUE, edges="all")
+NCTurban$glstrinv.real
+NCTurban$glstrinv.sep
+NCTurban$glstrinv.pval
+NCTurban$nwinv.real
+NCTurban$nwinv.perm
+NCTurban$nwinv.pval
+NCTurban$edges.tested
+NCTurban$einv.real
+NCTurban$einv.pvals
+NCTurban$einv.perm
+
+nf <- layout(matrix(c(1,2,3),ncol=1), widths=c(4,4,4), heights=c(2,1,1), TRUE) 
+plot(NCTeducation, what="network")
+plot(NCTeducation, what="strength")
+plot(NCTeducation, what="edge")
+
+
+###### old versus young
+#delete rows with missing values since NCT does not allow missing values
+complete_old<-olddataset[complete.cases(olddataset), ]
+complete_young<-youngdataset[complete.cases(youngdataset), ]
+
+#takes long, default is it=100
+
+library(NetworkComparisonTest)
+set.seed(1)
+NCTage <- NCT(complete_old, complete_young, it=20, binary.data=TRUE, test.edges=TRUE, edges="all")
+NCTage$glstrinv.real
+NCTage$glstrinv.sep
+NCTage$glstrinv.pval
+NCTage$nwinv.real
+NCTage$nwinv.perm
+NCTage$nwinv.pval
+NCTage$edges.tested
+NCTage$einv.real
+NCTage$einv.pvals
+NCTage$einv.perm
+
+nf <- layout(matrix(c(1,2,3),ncol=1), widths=c(4,4,4), heights=c(2,1,1), TRUE) 
+plot(NCTeducation, what="network")
+plot(NCTeducation, what="strength")
+plot(NCTeducation, what="edge")
+
+
+
+
+```
+
+```{r}
+#network comparison test with imputing missing values instead of deleiting them
+####Imputing immigration
+
+sapply(immdataset, function(immdataset) sum(is.na(immdataset)))
+library(mice)
+init1 = mice(immdataset, maxit=0) 
+meth1 = init$method
+predM1 = init$predictorMatrix
+meth1="logreg" 
+
+set.seed(1)
+impimmyes = mice(immdataset, method=meth1, predictorMatrix=predM1, m=5)
+impimmyes <- complete(impimmyes)
+sapply(impimmyes, function(impimmyes) sum(is.na(impimmyes)))
+head(impimmyes)
+head (immdataset)
+
+sapply(noimmdataset, function(noimmdataset) sum(is.na(noimmdataset)))
+library(mice)
+init2 = mice(noimmdataset, maxit=0) 
+meth2 = init$method
+predM2 = init$predictorMatrix
+meth2="logreg" 
+
+set.seed(1)
+impimmno = mice(noimmdataset, method=meth2, predictorMatrix=predM2, m=5)
+impimmno <- complete(impimmno)
+sapply(impimmno, function(impimmno) sum(is.na(impimmno)))
+head(impimmno)
+
+
+####immigration and non immigration
+library(NetworkComparisonTest)
+set.seed(1)
+NCTimmigrantsIMP <- NCT(impimmyes, impimmno, it=20, binary.data=TRUE, test.edges=TRUE, edges="all")
+NCTimmigrantsIMP$glstrinv.real
+NCTimmigrantsIMP$glstrinv.sep
+NCTimmigrantsIMP$glstrinv.pval
+NCTimmigrantsIMP$nwinv.real
+NCTimmigrantsIMP$nwinv.perm
+NCTimmigrantsIMP$nwinv.pval
+NCTimmigrantsIMP$edges.tested
+NCTimmigrantsIMP$einv.real
+NCTimmigrantsIMP$einv.pvals
+NCTimmigrantsIMP$einv.perm
+plot(NCTimmigrantsIMP, what="network")
+plot(NCTimmigrantsIMP, what="strength")
+plot(NCTimmigrantsIMP, what="edge")
+
+
+######
+#imputing Education
+
+sapply(edudataset, function(edudataset) sum(is.na(edudataset)))
+library(mice)
+init3 = mice(edudataset, maxit=0) 
+meth3 = init$method
+predM3 = init$predictorMatrix
+meth3="logreg" 
+
+set.seed(1)
+impedu = mice(edudataset, method=meth3, predictorMatrix=predM3, m=5)
+impedu<- complete(impedu)
+sapply(impedu, function(impedu) sum(is.na(impedu)))
+head(impedu)
+head (edudataset)
+
+sapply(loweddataset, function(loweddataset) sum(is.na(loweddataset)))
+library(mice)
+init4 = mice(loweddataset, maxit=0) 
+meth4 = init$method
+predM4 = init$predictorMatrix
+meth4="logreg" 
+
+set.seed(1)
+implowed = mice(loweddataset, method=meth4, predictorMatrix=predM4, m=5)
+implowed<- complete(implowed)
+sapply(implowed, function(implowed) sum(is.na(implowed)))
+head(implowed)
+
+####NCT
+library(NetworkComparisonTest)
+set.seed(1)
+NCTeduIMP <- NCT(impedu, implowed, it=20, binary.data=TRUE, test.edges=TRUE, edges="all")
+NCTeduIMP$glstrinv.real
+NCTeduIMP$glstrinv.sep
+NCTeduIMP$glstrinv.pval
+NCTeduIMP$nwinv.real
+NCTeduIMP$nwinv.perm
+NCTeduIMP$nwinv.pval
+NCTeduIMP$edges.tested
+NCTeduIMP$einv.real
+NCTeduIMP$einv.pvals
+NCTeduIMP$einv.perm
+plot(NCTeduIMP, what="network")
+plot(NCTeduIMP, what="strength")
+plot(NCTeduIMP, what="edge")
+
+
+
+#######
+# imputing urbanity
+sapply(ruraldataset, function(ruraldataset) sum(is.na(ruraldataset)))
+library(mice)
+init5 = mice(ruraldataset, maxit=0) 
+meth5 = init$method
+predM5 = init$predictorMatrix
+meth5="logreg" 
+
+set.seed(1)
+imprural = mice(ruraldataset, method=meth5, predictorMatrix=predM5, m=5)
+imprural<- complete(imprural)
+sapply(imprural, function(imprural) sum(is.na(imprural)))
+head(imprural)
+head (ruraldataset)
+
+sapply(urbandataset, function(urbandataset) sum(is.na(urbandataset)))
+library(mice)
+init6 = mice(urbandataset, maxit=0) 
+meth6 = init$method
+predM6 = init$predictorMatrix
+met6h="logreg" 
+
+set.seed(1)
+impurban = mice(urbandataset, method=meth6, predictorMatrix=predM6, m=5)
+impurban<- complete(impurban)
+sapply(impurban, function(impurban) sum(is.na(impurban)))
+head(impurban)
+
+####NCT
+library(NetworkComparisonTest)
+set.seed(1)
+NCTurbanityIMP <- NCT(imprural, impurban, it=20, binary.data=TRUE, test.edges=TRUE, edges="all")
+NCTurbanityIMP$glstrinv.real
+NCTurbanityIMP$glstrinv.sep
+NCTurbanityIMP$glstrinv.pval
+NCTurbanityIMP$nwinv.real
+NCTurbanityIMP$nwinv.perm
+NCTurbanityIMP$nwinv.pval
+NCTurbanityIMP$edges.tested
+NCTurbanityIMP$einv.real
+NCTurbanityIMP$einv.pvals
+NCTurbanityIMP$einv.perm
+plot(NCTurbanityIMP, what="network")
+plot(NCTurbanityIMP, what="strength")
+plot(NCTurbanityIMP, what="edge")
+
+
+
+########
+#imputing age
+sapply(olddataset, function(olddataset) sum(is.na(olddataset)))
+library(mice)
+init7 = mice(olddataset, maxit=0) 
+meth7 = init$method
+predM7 = init$predictorMatrix
+meth="logreg" 
+
+set.seed(1)
+impold = mice(olddataset, method=meth7, predictorMatrix=predM7, m=5)
+impold<- complete(impold)
+sapply(impold, function(impold) sum(is.na(impold)))
+head(impold)
+head (olddataset)
+
+sapply(youngdataset, function(youngdataset) sum(is.na(youngdataset)))
+library(mice)
+init8 = mice(youngdataset, maxit=0) 
+meth8 = init$method
+predM8 = init$predictorMatrix
+meth="logreg" 
+
+set.seed(1)
+impyoung = mice(youngdataset, method=meth8, predictorMatrix=predM8, m=5)
+impyoung<- complete(impyoung)
+sapply(impyoung, function(impyoung) sum(is.na(impyoung)))
+head(impyoung)
+
+####immigration and non immigration
+library(NetworkComparisonTest)
+set.seed(1)
+NCTageIMP <- NCT(impold, impyoung, it=20, binary.data=TRUE, test.edges=TRUE, edges="all")
+NCTageIMP$glstrinv.real
+NCTageIMP$glstrinv.sep
+NCTageIMP$glstrinv.pval
+NCTageIMP$nwinv.real
+NCTageIMP$nwinv.perm
+NCTageIMP$nwinv.pval
+NCTageIMP$edges.tested
+NCTageIMP$einv.real
+NCTageIMP$einv.pvals
+NCTageIMP$einv.perm
+plot(NCTageIMP, what="network")
+plot(NCTageIMP, what="strength")
+plot(NCTageIMP, what="edge")
+
+
+```
+
+
+```{r}
+##compare networks layouts 
+
+
+
+#by age
+
+
+#just old and young
+L1 <- averageLayout(youngnetgraph5,oldnetgraph5)
+
+layout(t(1:2))
+youngraph <- qgraph(youngnetgraph5, layout=L1, cut=0.8, maximum=0.29, labels = colnames(youngdataset))
+oldgraph <- qgraph(oldnetgraph5, layout=L1, cut=0.8, maximum=0.29, labels = colnames(olddataset))
+
+ 
+#layout(t(1:2))
+#graph1 <- plot(youngnetgraph5, layout=L, cut=-0.5)#, maximum=0.29)
+#graph3 <- plot(oldnetgraph5, layout=L, cut=-0.5)#, maximum=0.29)
+
+
+
+
+#by urban
+L2 <- averageLayout(urbannetgraph5,ruralnetgraph5)
+ 
+
+
+layout(t(1:2))
+
+urbangraph <- qgraph(urbannetgraph5, layout=L2, cut=0.8, maximum=0.29, labels = colnames(urbandataset))
+ruralgraph <- qgraph(ruralnetgraph5, layout=L2, cut=0.8, maximum=0.29, labels = colnames(ruraldataset))
+
+
+#### by education
+
+L3 <- averageLayout(edunetgraph5,lowednetgraph5)
+ 
+layout(t(1:2))
+
+highedugraph <- plot(edunetgraph5, layout=L3, cut=0.8, maximum=0.29, labels = colnames(edudataset))
+nothighedugraph <- plot(lowednetgraph5, layout=L3, cut=0.8, maximum=0.29, labels = colnames(loweddataset))
+
+
+#### by immigration background
+
+L4 <- averageLayout(immyesnetgraph5,noimmnetgraph5)
+ 
+layout(t(1:2))
+
+immgraph <- plot(immyesnetgraph5, layout=L4, cut=0.8, maximum=0.29, labels = colnames(immdataset))
+noimmgraph <- plot(noimmnetgraph5, layout=L4, cut=0.8, maximum=0.29, labels = colnames(noimmdataset))
+
+
+
+
+
+```
+
+

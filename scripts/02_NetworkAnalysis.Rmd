@@ -1,0 +1,193 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+Here is a test
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+
+```{r echo=TRUE}
+#Beginn script Main Network Analysis of Global Citizenship Attitudes based on script 01_prepare data
+rm(list=ls(all=TRUE))
+
+
+```
+
+```{r}
+###Open the dataset Networkdata prepared in script 01_prepare data
+load("Networkdata.Rdata")
+
+
+
+
+
+```
+
+```{r}
+#Conduct the Isingfit Network Analysis 
+attach(Networkdata)
+
+##load necessary R-packages
+library('qgraph')
+library('IsingFit')
+library('bootnet')
+library('igraph')
+
+####Network Analysis
+#Data requirements: Nodes must be coded 0 and 1
+citizensGlobal<- IsingFit (na.omit (Networkdata))
+
+#call for Results:
+#call for edge weights
+citizensGlobal$weiadj
+
+#Call for thresholds: independent likelihood that a node is present (=takes the value 1)
+citizensGlobal$thresholds
+
+#display the network graph with edge weights FIGURE 1
+Globalgraph<-qgraph(citizensGlobal$weiadj, layout="spring", cut=.8) 
+
+#### display a heatmap of the symetric adjacency matrix (of the edge weights)
+#http://psych.colorado.edu/~anre8906/guides/03-heatmaps.html Appendix 2
+edgesmatrix<-data.frame(citizensGlobal$weiadj)
+meltdata<-melt(as.matrix(edgesmatrix))
+names(meltdata)<-c('nodes1','nodes2','cor')
+meltdata
+library(ggplot2)
+library(reshape2)
+ggplot(data = meltdata, aes(x=nodes1, y=nodes2, fill=cor)) + 
+  geom_tile()+
+  scale_fill_gradient2(low = "red", high = "green", mid = "white", 
+   midpoint = 0, space = "Lab", 
+   name="egde weights") +
+  theme_minimal()+
+ # theme(axis.text.x = element_text(angle = 0, #vjust = 1, 
+#    size = 12, hjust = 1))+
+ coord_fixed()
+
+###Community analysis: here we need the igraph package FIGURE 2
+cluster_walktrap
+globaliGraph<-graph_from_adjacency_matrix(abs(citizensGlobal$weiadj),'undirected', weighted=TRUE, add.colnames=FALSE)
+globalCom<-cluster_walktrap(globaliGraph)
+layout(t(1:1))
+communities(globalCom)
+qgraph(citizensGlobal$weiadj, layout="spring", cut=.8, groups=communities(globalCom), legend=FALSE)
+
+
+```
+
+```{r}
+
+#Centrality Analysis: Strength, Closeness, and Betweenness FIGURE 3
+GlobalCentrality<-centralityTable(Globalgraph, standardized=FALSE)
+centralityPlot(Globalgraph, scale="raw")
+
+```
+
+```{r}
+###Testing Connectivity
+#### SW Index von Dalege 2015: https://surfdrive.surf.nl/files/index.php/s/w2Zfq0ArRCNQIOt
+####More about ASPL: https://www.researchgate.net/publication/316617763_A_Network_Perspective_on_Political_Attitudes_Testing_the_Connectivity_Hypothesis
+####More on Shortest path length: chrome-extension://oemmndcbldboiebfnladdacbdfmadadm/https://cran.r-project.org/web/packages/qgraph/qgraph.pdf
+
+
+SW_Index <- function (Graph, ci = c (.1, .05, .01, .001))
+{
+  randomC <- vector (, 1000)
+  randomL <- vector (, 1000)
+  for (i in 1:1000)
+  {
+    Rgraph <- erdos.renyi.game (vcount (Graph), ecount (Graph), 'gnm')
+    randomC [i] <- transitivity (Rgraph, 'average')
+    randomL [i] <- average.path.length(Rgraph)
+  }
+  MrandomC <- mean (randomC)
+  MrandomL <- mean (randomL)
+  Clustering.Graph = transitivity (Graph, 'average')
+  ASPL.Graph = average.path.length (Graph)
+  Index <- (Clustering.Graph / MrandomC) / (ASPL.Graph / MrandomL)
+  
+  sm_sample <- vector (, 1000)
+  for (i in 1:1000)
+  {
+    Rgraph <- erdos.renyi.game (vcount (Graph), ecount (Graph), 'gnm')
+    sm_sample [i] <- (transitivity (Rgraph, 'average') / MrandomC) /(average.path.length(Rgraph) / MrandomL)
+  }
+  CI <- as.vector (((quantile (sm_sample, 1 - (ci / 2)) - quantile (sm_sample, ci / 2)) / 2) + 1)
+  return (list (SW.Index = Index, Upper.CI = data.frame (CI = ci, Value.CI = CI), 
+                Clustering.Graph = Clustering.Graph, Clustering.Random.Graph = MrandomC,
+                ASPL.Graph = ASPL.Graph, ASPL.Random.Graph = MrandomL))
+}
+
+
+SW_Index (globaliGraph)
+
+
+#https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2323569/
+#chrome-extension://oemmndcbldboiebfnladdacbdfmadadm/https://cran.r-project.org/web/packages/qgraph/qgraph.pdf
+# bei folgedem kommt kein kleiner small worldness index raus. 
+#smallworldIndex(Globalgraph5)
+#smallworldness(Globalgraph5, B = 1000, up = 0.995, lo = 0.005)
+
+```
+```{r}
+###caulculate mean sumscores
+###Does not say a lot would rather say something about the simulation network
+
+#ralf: previously was GlobalCitizens5.... i changed to Networkdata.
+sumscores <- apply(Networkdata, 1, sum, na.rm = TRUE)
+mean(sumscores)
+sd(sumscores)
+
+
+
+```
+
+
+```{r}
+
+#####Test Network Stability
+
+#Edge stability
+
+library(bootnet)
+
+#plot(Citizensbootnet[1:1000,5:8], plot = 'interval', order = 'sample') Appendix 3+4
+
+
+set.seed(1)
+
+boot2 <- bootnet(Networkdata, 1000, type = "case", 'IsingFit')
+plot(boot2)
+#Centrality Stability
+corStability(boot2)
+save.image("Results script 02 main network analysis.RData")
+
+#### End of the main network analyses script
+```
+<<<<<<< HEAD
+=======
+
+```{r}
+
+
+
+```{r}
+
+
+```{r}
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+  
+>>>>>>> 91b374ad2441b540ded881eca81623b6fdb46fa7
