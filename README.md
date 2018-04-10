@@ -1,7 +1,6 @@
 # Citizenship Networks
 
-This project examines attitude networks (Borsboom et al., 2015, Dalege et al. 2015)  of citizens regarding global citizenship in European OECD countries. The current manuscript can be found [here](http://).
-
+This project examines attitude networks (Borsboom et al., 2015, Dalege et al. 2015)  of citizens regarding global citizenship in European OECD countries. 
 ***
 
 <img align="right" width=500px src=manuscript/explainer_fig.png> 
